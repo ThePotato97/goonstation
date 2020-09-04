@@ -857,7 +857,7 @@ proc/is_teleportation_allowed(var/turf/T)
 	var/allow_scan = 1
 	var/coord_update_flag = 1
 
-	var/readout = "&nbsp;"
+	var/readout = ""
 	var/datum/computer/file/record/user_data
 	var/padNum = 1
 
@@ -973,6 +973,7 @@ proc/is_teleportation_allowed(var/turf/T)
 
 		return
 
+/*
 	attack_hand(var/mob/user as mob)
 		if (..(user))
 			return
@@ -1265,7 +1266,7 @@ proc/is_teleportation_allowed(var/turf/T)
 				src.post_status(src.host_id, "command","term_ping","data","reply")
 
 		return
-
+*/
 	proc/message_host(var/message, var/datum/computer/file/file)
 		if (!src.host_id || !message)
 			return
@@ -1276,3 +1277,84 @@ proc/is_teleportation_allowed(var/turf/T)
 			src.post_status(src.host_id,"command","term_message","data",message)
 
 		return
+
+	ui_state(var/mob/user as mob)
+		return tgui_default_state
+
+	ui_interact(var/mob/user as mob, datum/tgui/ui)
+		ui = tgui_process.try_update_ui(user, src, ui)
+		if(!ui)
+			ui = new(user, src, "Telesci", src.name)
+			ui.open()
+
+	ui_data(var/mob/user as mob)
+		var/list/data = list()
+		var/list/bookmarktemp = list()
+		data["allow_scan"] = allow_scan
+		data["allow_bookmarks"] = allow_bookmarks
+		data["readout"] = src.readout
+		data["xtarget"] = src.xtarget
+		data["ytarget"] = src.ytarget
+		data["ztarget"] = src.ztarget
+
+		var/obj/machinery/power/apc/APC = get_local_apc(src)
+		data["APCCellNotExist"] = true
+		data["APCNotExist"] = true
+		if (APC)
+			data["APCNotExist"] = false
+			if (istype(APC.cell,/obj/item/cell/))
+				data["APCCellNotExist"] = false
+				data["APCCellCurrentCharge"] = APC.cell.charge
+				data["MaxCharge"] = APC.cell.maxcharge
+		for (var/bm in bookmarks)
+			bookmarktemp.Add(list(list(
+				name = bm["name"],
+				x = src.xtarget,
+				y = src.ytarget,
+				z = src.ztarget
+			)))
+		data["bookmarks"] = bookmarktemp
+		return data
+
+	ui_act(action, params)
+		if(..())
+			return
+		switch(action)
+			if("tele")
+				var/teleaction = params["teleaction"]
+				if(!host_id)
+					boutput(usr, "<span class='alert'>Error: No host connection!</span>")
+					return
+				if(coord_update_flag)
+					message_host("command=teleman&args=-p [padNum] coords x=[xtarget] y=[ytarget] z=[ztarget]")
+					coord_update_flag = 0
+				message_host("command=teleman&args=-p [padNum] [teleaction]")
+				. = true
+			if("bookmark")
+				if(bookmarks.len >= max_bookmarks)
+					boutput(usr, "<span class='alert'>Maximum number of Bookmarks reached.</span>")
+					return
+				var/datum/teleporter_bookmark/bm = new
+				var/title = copytext(params["bmtitle"], 1, 128)
+				if(!length(title)) return
+				bm.name = title
+				bm.x = xtarget
+				bm.y = ytarget
+				bm.z = ztarget
+				bookmarks.Add(bm)
+				playsound(src.loc, "keyboard", 50, 1, -15)
+				return
+
+			if("changecoord")
+				var/axis = params["axis"]
+				var/setto = params["setto"]
+				boutput(world, params["axis"])
+				boutput(world, params["setto"])
+				if(axis == "xtarget")
+					xtarget = clamp(0, setto, 500)
+				else if(axis == "ytarget")
+					ytarget = clamp(0, setto, 500)
+				else if (axis == "ztarget")
+					ztarget = clamp(0, setto, 500)
+				coord_update_flag = 1
+
