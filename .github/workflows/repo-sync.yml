@@ -5,7 +5,7 @@ on:
     branches:
       - master
   schedule:
-    - cron:  "*/1 * * * *"
+    - cron:  "*/15 * * * *"
 
 jobs:
   repo-sync:
@@ -19,5 +19,6 @@ jobs:
       with:
         source_repo: "goonstation/goonstation"
         source_branch: "master"
+
         destination_branch: "master"
         github_token: ${{ secrets.GITHUB_TOKEN }}
