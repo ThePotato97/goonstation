@@ -40,9 +40,9 @@
 		/obj/item/reagent_containers/dropper/mechanical,
 		// TODO: some sort of chem dispenser?
 		/obj/item/reagent_containers/food/drinks/drinkingglass,
-		/obj/item/reagent_containers/glass/beaker/large,
-		/obj/item/reagent_containers/glass/beaker/large,
-		/obj/item/reagent_containers/glass/beaker/large,
+		/obj/item/magtractor/deluxe,
+		/obj/item/magtractor/deluxe,
+		/obj/item/magtractor/deluxe,
 		/obj/item/extinguisher, // TODO: make large version?
 	)
 

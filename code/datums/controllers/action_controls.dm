@@ -933,6 +933,8 @@ var/datum/action_controller/actions
 	var/obj/item/magtractor/picker = null //This is the magpicker.
 
 	New(Target, Picker)
+		if (istype(Picker, /obj/item/magtractor/deluxe))
+			duration = 0
 		target = Target
 		picker = Picker
 		..()
@@ -974,7 +976,6 @@ var/datum/action_controller/actions
 			M.u_equip(target)
 		picker.pickupItem(target, owner)
 		actions.start(new/datum/action/magPickerHold(picker, picker.highpower), owner)
-
 
 /datum/action/magPickerHold
 	duration = 30

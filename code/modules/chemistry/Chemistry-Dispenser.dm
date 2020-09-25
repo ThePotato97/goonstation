@@ -215,28 +215,6 @@
 			user.show_text("[src] seems to be out of order.", "red")
 			return
 
-		if (isrobot(user))
-			var/the_reagent = input("Which chemical do you want to put in the [glass_name]?", "[dispenser_name] Dispenser", null, null) as null|anything in src.dispensable_reagents
-			if (!the_reagent)
-				return
-			var/amtlimit = B.reagents.maximum_volume - B.reagents.total_volume
-			var/amount = input("How much of it do you want? (1 to [amtlimit])", "[dispenser_name] Dispenser", null, null) as null|num
-			if (isnull(amount) || amount <= 0)
-				return
-			amount = clamp(amount, 0, amtlimit)
-			if (get_dist(src,user) > 1)
-				boutput(user, "You need to move closer to get the chemicals!")
-				return
-			if (status & (NOPOWER|BROKEN))
-				user.show_text("[src] seems to be out of order.", "red")
-				return
-			B.reagents.add_reagent(the_reagent,amount)
-			B.reagents.handle_reactions()
-			return
-		if (src.beaker)
-			boutput(user, "A [glass_name] is already loaded into the machine.")
-			return
-
 		src.beaker =  B
 		user.drop_item()
 		B.set_loc(src)

@@ -56,6 +56,8 @@
 	attackby(obj/item/W as obj, mob/user as mob)
 		if (!W) return 0
 
+		if (W.cant_drop) return 0
+
 		if (get_dist(get_turf(src), get_turf(W)) > 1)
 			out(user, "<span class='alert'>\The [W] is too far away!</span>")
 			return 0
@@ -261,3 +263,20 @@
 		return 1
 
 /obj/item/magtractor/abilities = list(/obj/ability_button/magtractor_toggle, /obj/ability_button/magtractor_drop)
+
+/obj/item/magtractor/deluxe
+	name = "Deluxe Magtractor"
+	highpower = 1
+
+/obj/item/magtractor/deluxe/attack_self(mob/user as mob)
+	var/selection = input("Select an action!", "Icon", null, null) in list("Drop", "Interact")
+	switch(selection)
+		if("Drop")
+			src.dropItem()
+		if("Interact")
+			if (src.holding && !src.holding.disposed)
+				//activate held item (if possible)
+				src.holding.attack_self(user)
+				src.updateHeldOverlay(src.holding) //for items that update icon on activation (e.g. welders)
+			else
+				return 0
