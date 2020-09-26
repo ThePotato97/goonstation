@@ -973,6 +973,17 @@ proc/is_teleportation_allowed(var/turf/T)
 
 		return
 
+	attackby(obj/item/W as obj, mob/user as mob)
+		if (isscrewingtool(W))
+			playsound(src.loc, "sound/items/Screwdriver.ogg", 50, 1)
+			src.panel_open = !src.panel_open
+			boutput(user, "You [src.panel_open ? "unscrew" : "secure"] the cover.")
+			src.updateUsrDialog()
+			return
+
+		else
+			return ..()
+
 /*
 	attack_hand(var/mob/user as mob)
 		if (..(user))
@@ -1021,17 +1032,6 @@ proc/is_teleportation_allowed(var/turf/T)
 		user.Browse(dat, "window=t_computer;size=400x600")
 		onclose(user, "t_computer")
 		return
-
-	attackby(obj/item/W as obj, mob/user as mob)
-		if (isscrewingtool(W))
-			playsound(src.loc, "sound/items/Screwdriver.ogg", 50, 1)
-			src.panel_open = !src.panel_open
-			boutput(user, "You [src.panel_open ? "unscrew" : "secure"] the cover.")
-			src.updateUsrDialog()
-			return
-
-		else
-			return ..()
 
 
 	updateUsrDialog(var/updateReadout)
@@ -1309,9 +1309,9 @@ proc/is_teleportation_allowed(var/turf/T)
 		for (var/bm in bookmarks)
 			bookmarktemp.Add(list(list(
 				name = bm["name"],
-				x = src.xtarget,
-				y = src.ytarget,
-				z = src.ztarget
+				x = bm["x"],
+				y = bm["y"],
+				z = bm["z"]
 			)))
 		data["bookmarks"] = bookmarktemp
 		return data
@@ -1321,15 +1321,18 @@ proc/is_teleportation_allowed(var/turf/T)
 			return
 		switch(action)
 			if("tele")
-				var/teleaction = params["teleaction"]
+				var/teleaction = params["teleAction"]
+				var/xtarget = params["xTarget"]
+				var/ytarget = params["yTarget"]
+				var/ztarget = params["zTarget"]
+
 				if(!host_id)
 					boutput(usr, "<span class='alert'>Error: No host connection!</span>")
-					return
-				if(coord_update_flag)
+					. = TRUE
+				if(params["updateCoords"])
 					message_host("command=teleman&args=-p [padNum] coords x=[xtarget] y=[ytarget] z=[ztarget]")
-					coord_update_flag = 0
 				message_host("command=teleman&args=-p [padNum] [teleaction]")
-				. = true
+				. = TRUE
 			if("bookmark")
 				if(bookmarks.len >= max_bookmarks)
 					boutput(usr, "<span class='alert'>Maximum number of Bookmarks reached.</span>")
@@ -1338,23 +1341,9 @@ proc/is_teleportation_allowed(var/turf/T)
 				var/title = copytext(params["bmtitle"], 1, 128)
 				if(!length(title)) return
 				bm.name = title
-				bm.x = xtarget
-				bm.y = ytarget
-				bm.z = ztarget
+				bm.x = params["xTarget"]
+				bm.y = params["yTarget"]
+				bm.z = params["zTarget"]
 				bookmarks.Add(bm)
 				playsound(src.loc, "keyboard", 50, 1, -15)
-				return
-
-			if("changecoord")
-				var/axis = params["axis"]
-				var/setto = params["setto"]
-				boutput(world, params["axis"])
-				boutput(world, params["setto"])
-				if(axis == "xtarget")
-					xtarget = clamp(0, setto, 500)
-				else if(axis == "ytarget")
-					ytarget = clamp(0, setto, 500)
-				else if (axis == "ztarget")
-					ztarget = clamp(0, setto, 500)
-				coord_update_flag = 1
-
+				. = TRUE
