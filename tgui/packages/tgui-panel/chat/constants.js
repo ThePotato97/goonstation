@@ -101,11 +101,6 @@ export const MESSAGE_TYPES = [
     name: 'Unsorted',
     description: 'Everything we could not sort, always enabled',
   },
-  {
-    type: 'unknown',
-    name: 'Unsorted',
-    description: 'Everything we could not sort, always enabled',
-  },
   // Admin stuff
   {
     type: MESSAGE_TYPE_ADMINCHAT,
