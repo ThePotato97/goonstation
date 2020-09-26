@@ -14,16 +14,10 @@ import { PingIndicator } from './ping';
 import { SettingsPanel, useSettings } from './settings';
 
 export const Panel = (props, context) => {
-<<<<<<< HEAD
-  if (Byond.IS_LTE_IE8) {
-    return (
-      <HoboIE8Panel />
-=======
   // IE8-10: Needs special treatment due to missing Flex support
   if (Byond.IS_LTE_IE10) {
     return (
       <HoboPanel />
->>>>>>> 85c8c9edb631a2b37e013a8078d665f499e3af7b
     );
   }
   const audio = useAudio(context);
@@ -119,12 +113,7 @@ export const Panel = (props, context) => {
   );
 };
 
-<<<<<<< HEAD
-// IE8: Needs special treatment
-const HoboIE8Panel = (props, context) => {
-=======
 const HoboPanel = (props, context) => {
->>>>>>> 85c8c9edb631a2b37e013a8078d665f499e3af7b
   const settings = useSettings(context);
   return (
     <Pane theme={settings.theme}>

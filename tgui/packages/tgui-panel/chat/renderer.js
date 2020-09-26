@@ -7,13 +7,8 @@
 import { EventEmitter } from 'common/events';
 import { classes } from 'common/react';
 import { createLogger } from 'tgui/logging';
-<<<<<<< HEAD
-import { COMBINE_MAX_MESSAGES, COMBINE_MAX_TIME_WINDOW, IMAGE_RETRY_DELAY, IMAGE_RETRY_LIMIT, IMAGE_RETRY_MESSAGE_AGE, MAX_PERSISTED_MESSAGES, MAX_VISIBLE_MESSAGES, MESSAGE_PRUNE_INTERVAL, MESSAGE_TYPES, PAGE_TEMPLATE } from './constants';
-import { canPageAcceptType, createMessage } from './model';
-=======
 import { COMBINE_MAX_MESSAGES, COMBINE_MAX_TIME_WINDOW, IMAGE_RETRY_DELAY, IMAGE_RETRY_LIMIT, IMAGE_RETRY_MESSAGE_AGE, MAX_PERSISTED_MESSAGES, MAX_VISIBLE_MESSAGES, MESSAGE_PRUNE_INTERVAL, MESSAGE_TYPES, MESSAGE_TYPE_INTERNAL, MESSAGE_TYPE_UNKNOWN } from './constants';
 import { canPageAcceptType, createMessage, isSameMessage } from './model';
->>>>>>> 85c8c9edb631a2b37e013a8078d665f499e3af7b
 import { highlightNode, linkifyNode } from './replaceInTextNode';
 
 const logger = createLogger('chatRenderer');
@@ -181,11 +176,7 @@ class ChatRenderer {
       this.highlightColor = null;
       return;
     }
-<<<<<<< HEAD
-    const allowedRegex = /^[a-z0-9_-\s]+$/ig;
-=======
     const allowedRegex = /^[a-z0-9_\-\s]+$/ig;
->>>>>>> 85c8c9edb631a2b37e013a8078d665f499e3af7b
     const lines = String(text)
       .split(',')
       .map(str => str.trim())
@@ -246,15 +237,9 @@ class ChatRenderer {
       const message = this.visibleMessages[i];
       const matches = (
         // Is not an internal message
-<<<<<<< HEAD
-        !message.type.startsWith('internal')
-        // Text payload must fully match
-        && message.text === predicate.text
-=======
         !message.type.startsWith(MESSAGE_TYPE_INTERNAL)
         // Text payload must fully match
         && isSameMessage(message, predicate)
->>>>>>> 85c8c9edb631a2b37e013a8078d665f499e3af7b
         // Must land within the specified time window
         && now < message.createdAt + COMBINE_MAX_TIME_WINDOW
       );
@@ -305,11 +290,6 @@ class ChatRenderer {
       // Create message node
       else {
         node = createMessageNode();
-<<<<<<< HEAD
-        node.innerHTML = message.text;
-        // Highlight text
-        if (this.highlightRegex) {
-=======
         // Payload is plain text
         if (message.text) {
           node.textContent = message.text;
@@ -323,7 +303,6 @@ class ChatRenderer {
         }
         // Highlight text
         if (!message.avoidHighlighting && this.highlightRegex) {
->>>>>>> 85c8c9edb631a2b37e013a8078d665f499e3af7b
           const highlighted = highlightNode(node,
             this.highlightRegex,
             text => (
@@ -334,14 +313,10 @@ class ChatRenderer {
           }
         }
         // Linkify text
-<<<<<<< HEAD
-        linkifyNode(node);
-=======
         const linkifyNodes = node.querySelectorAll('.linkify');
         for (let i = 0; i < linkifyNodes.length; ++i) {
           linkifyNode(linkifyNodes[i]);
         }
->>>>>>> 85c8c9edb631a2b37e013a8078d665f499e3af7b
         // Assign an image error handler
         if (now < message.createdAt + IMAGE_RETRY_MESSAGE_AGE) {
           const imgNodes = node.querySelectorAll('img');
@@ -361,11 +336,7 @@ class ChatRenderer {
           .find(typeDef => (
             typeDef.selector && node.querySelector(typeDef.selector)
           ));
-<<<<<<< HEAD
-        message.type = typeDef?.type || 'unknown';
-=======
         message.type = typeDef?.type || MESSAGE_TYPE_UNKNOWN;
->>>>>>> 85c8c9edb631a2b37e013a8078d665f499e3af7b
       }
       updateMessageBadge(message);
       if (!countByType[message.type]) {

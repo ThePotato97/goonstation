@@ -41,17 +41,10 @@ export const MESSAGE_TYPE_DEBUG = 'debug';
 export const MESSAGE_TYPES = [
   // Always-on types
   {
-<<<<<<< HEAD
-    type: 'system',
-    name: 'System Messages',
-    description: 'Messages from your client, always enabled',
-    selector: '.boldannounce, .filter_system',
-=======
     type: MESSAGE_TYPE_SYSTEM,
     name: 'System Messages',
     description: 'Messages from your client, always enabled',
     selector: '.boldannounce',
->>>>>>> 85c8c9edb631a2b37e013a8078d665f499e3af7b
     important: true,
   },
   // Basic types
@@ -89,11 +82,7 @@ export const MESSAGE_TYPES = [
     type: MESSAGE_TYPE_OOC,
     name: 'OOC',
     description: 'The bluewall of global OOC messages',
-<<<<<<< HEAD
-    selector: '.filter_ooc, .ooc, .adminooc',
-=======
     selector: '.ooc, .adminooc',
->>>>>>> 85c8c9edb631a2b37e013a8078d665f499e3af7b
   },
   {
     type: MESSAGE_TYPE_ADMINPM,

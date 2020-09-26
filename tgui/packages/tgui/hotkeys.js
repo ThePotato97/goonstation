@@ -4,11 +4,7 @@
  * @license MIT
  */
 
-<<<<<<< HEAD
-import { KEY_CTRL, KEY_ENTER, KEY_ESCAPE, KEY_F5, KEY_R, KEY_SHIFT, KEY_SPACE, KEY_TAB } from 'common/keycodes';
-=======
 import { KEY_CTRL, KEY_ENTER, KEY_ESCAPE, KEY_F, KEY_F5, KEY_R, KEY_SHIFT, KEY_SPACE, KEY_TAB } from 'common/keycodes';
->>>>>>> 85c8c9edb631a2b37e013a8078d665f499e3af7b
 import { globalEvents } from './events';
 import { createLogger } from './logging';
 
@@ -73,18 +69,6 @@ const handlePassthrough = key => {
     location.reload();
     return;
   }
-<<<<<<< HEAD
-  // NOTE: Alt modifier is pretty bad and sticky in IE11.
-  if (key.event.defaultPrevented
-      || key.isModifierKey()
-      || hotKeysAcquired.includes(key.code)) {
-    return;
-  }
-  const byondKeyCode = keyCodeToByond(key.code);
-  if (!byondKeyCode) {
-    return;
-  }
-=======
   // Prevent passthrough on Ctrl+F
   if (key.ctrl && key.code === KEY_F) {
     return;
@@ -99,7 +83,6 @@ const handlePassthrough = key => {
   if (!byondKeyCode) {
     return;
   }
->>>>>>> 85c8c9edb631a2b37e013a8078d665f499e3af7b
   // Macro
   const macro = byondMacros[byondKeyCode];
   if (macro) {
@@ -109,22 +92,14 @@ const handlePassthrough = key => {
   // KeyDown
   if (key.isDown() && !keyState[byondKeyCode]) {
     keyState[byondKeyCode] = true;
-<<<<<<< HEAD
-    const command = `KeyDown "${byondKeyCode}"`;
-=======
     const command = `.keydown "${byondKeyCode}"`;
->>>>>>> 85c8c9edb631a2b37e013a8078d665f499e3af7b
     logger.debug(command);
     return Byond.command(command);
   }
   // KeyUp
   if (key.isUp() && keyState[byondKeyCode]) {
     keyState[byondKeyCode] = false;
-<<<<<<< HEAD
-    const command = `KeyUp "${byondKeyCode}"`;
-=======
     const command = `.force_keyup "${byondKeyCode}"`;
->>>>>>> 85c8c9edb631a2b37e013a8078d665f499e3af7b
     logger.debug(command);
     return Byond.command(command);
   }
@@ -153,11 +128,7 @@ export const releaseHeldKeys = () => {
     if (keyState[byondKeyCode]) {
       keyState[byondKeyCode] = false;
       logger.log(`releasing key "${byondKeyCode}"`);
-<<<<<<< HEAD
-      Byond.command(`KeyUp "${byondKeyCode}"`);
-=======
       Byond.command(`.force_keyup "${byondKeyCode}"`);
->>>>>>> 85c8c9edb631a2b37e013a8078d665f499e3af7b
     }
   }
 };
