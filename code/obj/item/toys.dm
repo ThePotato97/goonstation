@@ -56,6 +56,10 @@
 		interrupt(INTERRUPT_ALWAYS)
 		return
 
+/datum/action/bar/icon/claw_machine/onResume()
+	..()
+	state = ACTIONSTATE_DELETE
+
 /datum/action/bar/icon/claw_machine/onInterrupt()
 	..()
 	CM.busy = 0
@@ -102,11 +106,17 @@
 	message = trim(copytext(sanitize(html_encode(message)), 1, MAX_MESSAGE_LEN))
 	if (!message || get_dist(src, user) > 1)
 		return
-	logTheThing("say", user, null, "makes [src] say,  \"[message]\"")
+	logTheThing("say", user, null, "makes [src] say, \"[message]\"")
 	user.audible_message("<span class='emote'>[src] says, \"[message]\"</span>")
 	var/mob/living/carbon/human/H = user
 	if (H.sims)
 		H.sims.affectMotive("fun", 1)
+
+/obj/item/toy/plush/attack(mob/M as mob, mob/user as mob)
+	if (user.a_intent == INTENT_HELP)
+		M.visible_message("<span class='emote'>[src] gives [M] a hug!</span>", "<span class='emote'>[src] gives you a hug!</span>")
+	else
+		. = ..()
 
 /obj/item/toy/plush/small
 	name = "small plush toy"
@@ -211,7 +221,7 @@
 		icon_state = "sword1-[bladecolor]"
 		item_state = "sword1-[bladecolor]"
 		src.setItemSpecial(/datum/item_special/swipe)
-		BLOCK_SWORD
+		BLOCK_SETUP(BLOCK_SWORD)
 
 	attack(target as mob, mob/user as mob)
 		..()
@@ -282,9 +292,7 @@
 				src.setMaterial(getMaterial(pick(material_varieties)))
 
 		if (src.icon_state == "fig-floorpills")
-			var/datum/reagents/R = new/datum/reagents(30)
-			src.reagents = R
-			R.my_atom = src
+			src.create_reagents(30)
 
 			var/primaries = rand(1,3)
 			var/adulterants = rand(2,4)
@@ -887,8 +895,8 @@ var/list/figure_patreon_rarity = list(\
 	New()
 		..()
 		//Products
-		product_list += new/datum/data/vending_product(/obj/item/item_box/figure_capsule, 26, cost=100)
-		product_list += new/datum/data/vending_product(/obj/item/satchel/figurines, 2, cost=500)
+		product_list += new/datum/data/vending_product(/obj/item/item_box/figure_capsule, 26, cost=PAY_UNTRAINED/5)
+		product_list += new/datum/data/vending_product(/obj/item/satchel/figurines, 2, cost=PAY_UNTRAINED*3)
 		src.icon_state = "machine[rand(1,6)]"
 		src.capsule_image = image(src.icon, "m_caps26")
 		src.UpdateOverlays(src.capsule_image, "capsules")

@@ -1,4 +1,4 @@
-//This serves as a bridge between old materials pieces and new ones. Eventually old ones should just be updated.
+/// This serves as a bridge between old materials pieces and new ones. Eventually old ones should just be updated.
 /obj/machinery/processor
 	name = "Material processor"
 	desc = "Turns raw materials, and objects containing materials, into processed pieces."
@@ -264,6 +264,7 @@
 		user.unequip_all()
 		user.set_loc(src)
 		user.make_cube(life = 5 MINUTES, T = src.loc)
+
 /obj/machinery/neosmelter
 	name = "Nano-crucible"
 	desc = "A huge furnace-like machine used to combine materials."
@@ -685,4 +686,4 @@
 
 	New()
 		..()
-		BLOCK_ROD
+		BLOCK_SETUP(BLOCK_ROD)

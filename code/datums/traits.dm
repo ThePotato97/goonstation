@@ -62,6 +62,9 @@
 			if (!user)
 				return
 
+		if(!user.client)
+			return
+
 		if(!winexists(user, "traitssetup_[user.ckey]"))
 			winclone(user, "traitssetup", "traitssetup_[user.ckey]")
 
@@ -102,6 +105,9 @@
 		return
 
 	proc/showTraits(var/mob/user)
+		if(!user.client)
+			return
+
 		if(!winexists(user, "traitssetup_[user.ckey]"))
 			winclone(user, "traitssetup", "traitssetup_[user.ckey]")
 
@@ -708,6 +714,28 @@
 	points = -2
 	isPositive = 1
 
+//Category: Background.
+
+/obj/trait/immigrant
+	name = "Stowaway (+1) \[Background\]"
+	cleanName = "Stowaway"
+	desc = "You spawn hidden away on-station without an ID or PDA."
+	id = "immigrant"
+	icon_state = "stowaway"
+	category = "background"
+	points = 1
+	isPositive = 0
+
+obj/trait/pilot
+	name = "Pilot (0) \[Background\]"
+	cleanName = "Pilot"
+	desc = "You spawn in a pod off-station with a Space GPS, Emergency Oxygen Tank, Breath Mask and proper protection but without a PDA."
+	id = "pilot"
+	icon_state = "pilot"
+	category = "background"
+	points = 0
+	isPositive = 0
+
 // NO CATEGORY - Grey Border
 
 /obj/trait/hemo
@@ -755,7 +783,7 @@
 	var/list/allergen_id_list = list("spaceacillin","morphine","teporone","salicylic_acid","calomel","synthflesh","omnizine","saline","anti_rad","smelling_salt",\
 	"haloperidol","epinephrine","insulin","silver_sulfadiazine","mutadone","ephedrine","penteticacid","antihistamine","styptic_powder","cryoxadone","atropine",\
 	"salbutamol","perfluorodecalin","mannitol","charcoal","antihol","ethanol","iron","mercury","oxygen","plasma","sugar","radium","water","bathsalts","jenkem","crank",\
-	"LSD","space_drugs","THC","nicotine","krokodil","catdrugs","triplemeth","methamphetamine","mutagen","neurotoxin","sarin","smokepowder","infernite","napalm", "fuel",\
+	"LSD","space_drugs","THC","nicotine","krokodil","catdrugs","triplemeth","methamphetamine","mutagen","neurotoxin","sarin","smokepowder","infernite","phlogiston","fuel",\
 	"anti_fart","lube","ectoplasm","cryostylane","oil","sewage","ants","spiders","poo","love","hugs","fartonium","blood","bloodc","vomit","urine","capsaicin","cheese",\
 	"coffee","chocolate","chickensoup","salt","grease","badgrease","msg","egg")
 
@@ -899,14 +927,6 @@
 	points = -1
 	isPositive = 1
 
-/obj/trait/immigrant
-	name = "Stowaway (+1)"
-	cleanName = "Stowaway"
-	desc = "You spawn hidden away on-station without an ID or PDA."
-	id = "immigrant"
-	points = 1
-	isPositive = 0
-
 /obj/trait/nervous
 	name = "Nervous (+1)"
 	cleanName = "Nervous"
@@ -918,11 +938,11 @@
 
 	onAdd(var/mob/owner)
 		..()
-		nervous_mobs += owner
+		OTHER_START_TRACKING_CAT(owner, TR_CAT_NERVOUS_MOBS)
 
 	onRemove(var/mob/owner)
 		..()
-		nervous_mobs -= owner
+		OTHER_STOP_TRACKING_CAT(owner, TR_CAT_NERVOUS_MOBS)
 
 /obj/trait/burning
 	name = "Human Torch (+1)"
@@ -1003,3 +1023,10 @@
 	points = 1
 	isPositive = 0
 
+/obj/trait/atheist
+	name = "Atheist (0)"
+	cleanName = "Atheist"
+	desc = "In this moment, you are euphoric. You cannot receive faith healing, and prayer makes you feel silly."
+	id = "atheist"
+	points = 0
+	isPositive = 0

@@ -11,6 +11,7 @@
 	bound_width = 32
 	bound_height = 64
 	layer = 30
+	flags = IMMUNE_MANTA_PUSH | IMMUNE_SINGULARITY
 	dir = NORTH
 	var/move_dir = NORTH
 	var/moved_on_flooring = 0
@@ -147,8 +148,8 @@
 		if(!new_dir)
 			new_dir = pick(cardinal)
 		src.set_dir(new_dir)
-		var/turf/start = get_edge_target_turf(target, turn(dir, 180))
-		src.set_loc(start)
+		var/turf/start = get_step(get_edge_target_turf(target, turn(dir, 180)), dir)
+		src.loc = start
 
 proc/launch_with_missile(atom/movable/thing, turf/target)
 	var/obj/arrival_missile/missile = unpool(/obj/arrival_missile)

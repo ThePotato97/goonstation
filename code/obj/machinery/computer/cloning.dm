@@ -6,7 +6,7 @@
 	desc = "Use this console to operate a cloning scanner and pod. There is a slot to insert modules - they can be removed with a screwdriver."
 	icon = 'icons/obj/computer.dmi'
 	icon_state = "dna"
-	req_access = list(access_heads) //Only used for record deletion right now.
+	req_access = list(access_medical_lockers) //Only used for record deletion right now.
 	object_flags = CAN_REPROGRAM_ACCESS
 	machine_registry_idx = MACHINES_CLONINGCONSOLES
 	var/obj/machinery/clone_scanner/scanner = null //Linked scanner. For scanning.
@@ -264,10 +264,9 @@
 		if(5) //Advanced genetics analysis
 			dat += {"<h4>Advanced Genetic Analysis</h4>
 					<a href='byond://?src=\ref[src];menu=1'>Back</a><br>
-					<B>Notice:</B> Enabling this feature will prompt the attached clone pod to transfer active genetic mutations from the genetic record to the subject during cloning.
-					The cloning process will be slightly slower as a result.<BR><BR>"}
+					<B>Notice:</B> Enabling this feature will prompt the attached clone pod to transfer active genetic mutations from the genetic record to the subject during cloning.<BR>"}
 
-			if(pod1 && !pod1.operating)
+			if(pod1 && !pod1.attempting)
 				if(pod1.gen_analysis)
 					dat += {"Enabled<BR>
 							<a href='byond://?src=\ref[src];set_analysis=0'>Disable</A><BR>"}
@@ -325,7 +324,6 @@
 		if (src.menu == 3) //If we are viewing a record, confirm deletion
 			src.temp = "Delete record?"
 			src.menu = 4
-
 		else if (src.menu == 4)
 			logTheThing("combat", usr, null, "deletes the cloning record [src.active_record.fields["name"]] for player [src.active_record.fields["ckey"]] at [log_loc(src)].")
 			src.records.Remove(src.active_record)
@@ -500,7 +498,7 @@
 	if (!src.pod1)
 		src.temp = "No cloning pod connected."
 		return
-	if (src.pod1.occupant)
+	if (src.pod1.attempting)
 		src.temp = "Cloning pod in use."
 		return
 	if (src.pod1.mess)
@@ -637,7 +635,7 @@
 		eject_occupant(user)
 
 	disposing()
-		connected.scanner = null
+		connected?.scanner = null
 		connected = null
 		pods = null
 		occupant = null
@@ -697,6 +695,7 @@
 			O.set_loc(src.loc)
 
 		src.add_fingerprint(usr)
+		src?.connected.updateUsrDialog()
 
 		playsound(src.loc, "sound/machines/sleeper_close.ogg", 50, 1)
 
@@ -749,11 +748,14 @@
 		if ((!( src.occupant ) || src.locked))
 			return
 
-		for(var/obj/O in src)
-			O.set_loc(src.loc)
+		if(!src.occupant.disposed)
+			src.occupant.set_loc(src.loc)
 
-		src.occupant.set_loc(src.loc)
 		src.occupant = null
+
+		for(var/atom/movable/A in src)
+			A.set_loc(src.loc)
+
 		src.icon_state = "scanner_0"
 
 		playsound(src.loc, "sound/machines/sleeper_open.ogg", 50, 1)
