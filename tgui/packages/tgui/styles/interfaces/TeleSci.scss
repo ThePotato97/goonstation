@@ -1,0 +1,35 @@
+@use '../colors.scss';
+@use '../components/Button.scss';
+
+.TeleSci-TeleButtons {
+  text-transform: capitalize;
+  background-color: #000;
+}
+
+.TeleSci-Flex {
+  display: flex;
+  flex: 1 1 auto;
+  justify-content: center;
+}
+
+.TeleSci-CoordinateButtonHolder {
+  display: flex;
+  align-items: center;
+  vertical-align: middle;
+}
+
+.TeleSci-CoordinateButtons {
+  height: 20px;
+}
+
+.TeleSci-TeleButtons-Flex {
+  display: flex;
+  flex: 1 1 auto;
+  justify-content: space-around;
+}
+
+.TeleSci-TeleButtons-FlexItems {
+  display: flex;
+  align-items: center;
+  vertical-align: middle;
+}

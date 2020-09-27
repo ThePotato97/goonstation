@@ -4,38 +4,84 @@ import { Window } from '../layouts';
 import { Fragment } from 'inferno';
 import { clamp } from 'common/math';
 
+const Types = {
+  Danger: 'danger',
+  Info: 'info',
+  Success: 'success',
+};
+
+export const TypedNoticeBox = props => {
+  const {
+    type,
+    ...rest
+  } = props;
+  const typeProps = {
+    ...(type === Types.Danger ? { danger: true } : {}),
+    ...(type === Types.Info ? { info: true } : {}),
+    ...(type === Types.Success ? { success: true } : {}),
+  };
+  return <NoticeBox {...typeProps} {...rest} />;
+};
+
+TypedNoticeBox.Types = Types;
+
 export const Telesci = (props, context) => {
   const { data } = useBackend(context);
-  const APCNotExist = Boolean(data.APCNotExist);
   const {
-    APCCellCurrentCharge,
-    MaxCharge,
+    apcCellCurrentCharge,
+    maxCharge,
     readout,
+    apcExists,
+    apcName,
   } = data;
 
+  const strings = [
+    { 'readout': 'No atmosphere.', 'status': 'warning' },
+    { 'readout': 'Teleportation prevented by interference.', 'status': 'danger' },
+    { 'readout': 'OK', 'status': 'success' },
+    { 'readout': 'Scan Results:', 'status': 'info' },
+    { 'readout': 'Invalid coordinates', 'status': 'danger' },
+  ];
+  const status = strings.find(string => readout.includes(string.readout)) || "success";
   return (
     <Window
-      width={340}
-      height={560}
+      width={295}
+      height={530}
       theme={'ntos'}>
       <Window.Content>
-        {!!readout && (
-          <NoticeBox info>
-            {readout}
-          </NoticeBox>
+        {!!apcExists && (
+          <Section mb={0} title={apcName}>
+            <ProgressBar
+              maxValue={maxCharge}
+              minValue={0}
+              value={apcCellCurrentCharge}
+              ranges={{
+                good: [0.5, Infinity],
+                average: [0.15, 0.5],
+                bad: [-Infinity, 0.15],
+              }} />
+          </Section>
         )}
-        <Section title="Local APC Power">
-          <ProgressBar
-            maxValue={MaxCharge}
-            minValue={0}
-            value={APCCellCurrentCharge}
-            ranges={{
-              good: [0.5, Infinity],
-              average: [0.15, 0.5],
-              bad: [-Infinity, 0.15],
-            }} />
-        </Section>
-
+        <Box height="70px">
+          {!!readout && (
+            <TypedNoticeBox
+              height="70px"
+              type={status.status}>
+              <Box
+                align="center"
+                style={{
+                  position: 'relative', left: '50%', top: '50%',
+                  transform: 'translate(-50%, -50%)',
+                }}>
+                {readout.split('<br>').map(string => (
+                  <Box
+                    key={string}>{string}
+                  </Box>
+                ))}
+              </Box>
+            </TypedNoticeBox>
+          )}
+        </Box>
         <CoordinateInput />
         <TeleportButtons />
         <Bookmarks />
@@ -46,15 +92,16 @@ export const Telesci = (props, context) => {
 
 
 export const CoordinateInput = (props, context) => {
-  const [xTarget, setxTarget] = useSharedState(context, 'xTarget', 1);
-  const [yTarget, setyTarget] = useSharedState(context, 'yTarget', 1);
-  const [zTarget, setzTarget] = useSharedState(context, 'zTarget', 1);
-  const [updateCoords, setUpdateCoords] = useSharedState(context, 'updateCoords', true);
+  const { act } = useBackend(context);
+  const [xTarget, setxTarget] = useSharedState(context, 'xTarget', 0);
+  const [yTarget, setyTarget] = useSharedState(context, 'yTarget', 0);
+  const [zTarget, setzTarget] = useSharedState(context, 'zTarget', 0);
+  const [, setUpdateCoords] = useSharedState(context, 'updateCoords', true);
 
   const coords = [
-    { 'label': 'X', 'coord': xTarget, 'setCoord': setxTarget },
-    { 'label': 'Y', 'coord': yTarget, 'setCoord': setyTarget },
-    { 'label': 'Z', 'coord': zTarget, 'setCoord': setzTarget },
+    { 'label': 'X', 'coord': xTarget, 'setCoord': setxTarget, 'maxCoord': 500 },
+    { 'label': 'Y', 'coord': yTarget, 'setCoord': setyTarget, 'maxCoord': 500 },
+    { 'label': 'Z', 'coord': zTarget, 'setCoord': setzTarget, 'maxCoord': 14 },
   ];
 
   return (
@@ -62,45 +109,61 @@ export const CoordinateInput = (props, context) => {
       <LabeledList>
         {coords.map(item => (
           <LabeledList.Item key={item.label} label={item.label}>
-            <Flex inline width="100%">
-              <Flex.Item>
+            <Flex className="TeleSci-Flex">
+              <Flex.Item inline className="TeleSci-CoordinateButtonHolder">
+                {item.label !== 'Z' && (
+                  <Button
+                    className="TeleSci-CoordinateButtons"
+                    icon="fast-backward"
+                    onClick={() =>
+                    { item.setCoord(
+                      (clamp((item.coord - 10), 0, item.maxCoord)));
+                    setUpdateCoords(true);
+                    act("click"); }} />
+                )}
                 <Button
-                  icon="fast-backward"
-                  onClick={() =>
-                  { item.setCoord(
-                    (clamp((item.coord - 10), 1, 500)));
-                  setUpdateCoords(true); }} />
-                <Button
+                  className="TeleSci-CoordinateButtons"
                   icon="backward"
                   onClick={() =>
                   { item.setCoord(
-                    (clamp((item.coord - 1), 1, 500)));
-                  setUpdateCoords(true); }} />
+                    (clamp((item.coord - 1), 0, item.maxCoord)));
+                  setUpdateCoords(true);
+                  act("click"); }} />
               </Flex.Item>
-              <Flex.Item grow={1} mx={1}>
+              <Flex.Item inline width="90px" px={1} className="TeleSci-CoordinateButtonHolder">
                 <Slider
-                  minValue={1}
-                  maxValue={500}
+                  minValue={0}
+                  maxValue={item.maxCoord}
                   value={item.coord}
                   fillValue={0}
-                  step={5}
-                  stepPixelSize={4}
-                  onDrag={(e, value) => { item.setCoord(clamp(value, 1, 500));
-                    setUpdateCoords(true); }} />
+                  step={1}
+                  stepPixelSize={(item.label === "Z") ? 10 : 4}
+                  onChange={() =>
+                  { act("click"); }}
+                  onDrag={(e, value) => { item.setCoord(
+                    clamp((value),
+                      1, item.maxCoord));
+                  setUpdateCoords(true); }} />
               </Flex.Item>
-              <Flex.Item>
+              <Flex.Item inline className="TeleSci-CoordinateButtonHolder">
                 <Button
+                  className="TeleSci-CoordinateButtons"
                   icon="forward"
                   onClick={() =>
                   { item.setCoord(
-                    (clamp((item.coord + 1), 1, 500)));
-                  setUpdateCoords(true); }} />
-                <Button
-                  icon="fast-forward"
-                  onClick={() =>
-                  { item.setCoord(
-                    (clamp((item.coord + 10), 1, 500)));
-                  setUpdateCoords(true); }} />
+                    (clamp((item.coord + 1), 0, item.maxCoord)));
+                  setUpdateCoords(true);
+                  act("click"); }} />
+                {item.label !== 'Z' && (
+                  <Button
+                    className="TeleSci-CoordinateButtons"
+                    icon="fast-forward"
+                    onClick={() =>
+                    { item.setCoord(
+                      (clamp((item.coord + 10), 0, item.maxCoord)));
+                    setUpdateCoords(true);
+                    act("click"); }} />
+                )}
               </Flex.Item>
             </Flex>
           </LabeledList.Item>
@@ -126,20 +189,25 @@ export const TeleportButtons = (props, context) => {
 
   return (
     <Section>
-      {teleButtons.map(button => (
-        <Button
-          key={button}
-          onClick={() => { act('tele', {
-            'teleAction': button.teleAction,
-            'xTarget': xTarget,
-            'yTarget': yTarget,
-            'zTarget': zTarget,
-            'updateCoords': updateCoords });
-          setUpdateCoords(false);
-          }}>
-          {button.teleAction}
-        </Button>
-      ))}
+      <Flex className="TeleSci-TeleButtons-Flex">
+        {teleButtons.map(button => (
+          <Flex.Item key={button} className="TeleSci-TeleButtons-FlexItems">
+            <Button
+              className="TeleSci-TeleButtons"
+              key={button}
+              onClick={() => { act('tele', {
+                'teleAction': button.teleAction,
+                'xTarget': xTarget,
+                'yTarget': yTarget,
+                'zTarget': zTarget,
+                'updateCoords': updateCoords });
+              setUpdateCoords(false);
+              }}>
+              {button.teleAction}
+            </Button>
+          </Flex.Item>
+        ))}
+      </Flex>
     </Section>
   );
 };
@@ -149,7 +217,7 @@ export const Bookmarks = (props, context) => {
   const [xTarget, setxTarget] = useSharedState(context, 'xTarget', 1);
   const [yTarget, setyTarget] = useSharedState(context, 'yTarget', 1);
   const [zTarget, setzTarget] = useSharedState(context, 'zTarget', 1);
-  const [recordName, setRecordName] = useLocalState(context, 'groupName', "");
+  const [bookmarkName, setBookmarkName] = useLocalState(context, 'groupName', "");
 
   const {
     bookmarks,
@@ -164,25 +232,25 @@ export const Bookmarks = (props, context) => {
             <Input
               pl={5}
               placeholder="Name"
-              value={recordName}
-              onInput={(e, value) => setRecordName(value)} />
+              value={bookmarkName}
+              onInput={(e, value) => setBookmarkName(value)} />
             <Button
               icon="plus-circle"
               lineHeight={1.75}
               onClick={() => {
                 act("bookmark", {
-                  'bmtitle': recordName,
+                  'bmtitle': bookmarkName,
                   'xTarget': xTarget,
                   'yTarget': yTarget,
                   'zTarget': zTarget });
-                setRecordName("");
+                setBookmarkName("");
               }}>
-              Save
+              Add
             </Button>
           </Box>
         )} />
       <Section
-        height="125px"
+        height="132px"
         scrollable>
         <LabeledList>
           {bookmarks.map(bookmark => (
@@ -193,6 +261,7 @@ export const Bookmarks = (props, context) => {
               key={bookmark.name}
               buttons={(
                 <Button
+                  className="TeleSci-TeleButtons"
                   onClick={() => {
                     setxTarget(bookmark.x);
                     setyTarget(bookmark.y);

@@ -851,7 +851,7 @@ proc/is_teleportation_allowed(var/turf/T)
 	var/ztarget = 0
 
 	var/list/bookmarks = new/list()
-	var/max_bookmarks = 5
+	var/max_bookmarks = 50
 	var/allow_bookmarks = 1
 	var/allow_scan = 1
 	var/coord_update_flag = 1
@@ -983,8 +983,9 @@ proc/is_teleportation_allowed(var/turf/T)
 		else
 			return ..()
 
-/*
+
 	attack_hand(var/mob/user as mob)
+		ui_interact()
 		if (..(user))
 			return
 
@@ -1265,7 +1266,7 @@ proc/is_teleportation_allowed(var/turf/T)
 				src.post_status(src.host_id, "command","term_ping","data","reply")
 
 		return
-*/
+
 	proc/message_host(var/message, var/datum/computer/file/file)
 		if (!src.host_id || !message)
 			return
@@ -1289,22 +1290,20 @@ proc/is_teleportation_allowed(var/turf/T)
 	ui_data(var/mob/user as mob)
 		var/list/data = list()
 		var/list/bookmarktemp = list()
-		data["allow_scan"] = allow_scan
-		data["allow_bookmarks"] = allow_bookmarks
+		data["allowScan"] = allow_scan
+		data["allowBookmarks"] = allow_bookmarks
 		data["readout"] = src.readout
-		data["xtarget"] = src.xtarget
-		data["ytarget"] = src.ytarget
-		data["ztarget"] = src.ztarget
+		data["xTarget"] = src.xtarget
+		data["yTarget"] = src.ytarget
+		data["zTarget"] = src.ztarget
 
 		var/obj/machinery/power/apc/APC = get_local_apc(src)
-		data["APCCellNotExist"] = true
-		data["APCNotExist"] = true
-		if (APC)
-			data["APCNotExist"] = false
-			if (istype(APC.cell,/obj/item/cell/))
-				data["APCCellNotExist"] = false
-				data["APCCellCurrentCharge"] = APC.cell.charge
-				data["MaxCharge"] = APC.cell.maxcharge
+		data["apcCellExists"] = istype(APC.cell,/obj/item/cell/)
+		data["apcExists"] = !isnull(APC)
+		if (APC && istype(APC.cell,/obj/item/cell/))
+			data["apcName"] = APC.name
+			data["apcCellCurrentCharge"] = APC.cell.charge
+			data["maxCharge"] = APC.cell.maxcharge
 		for (var/bm in bookmarks)
 			bookmarktemp.Add(list(list(
 				name = bm["name"],
@@ -1319,6 +1318,9 @@ proc/is_teleportation_allowed(var/turf/T)
 		if(..())
 			return
 		switch(action)
+			if("click")
+				playsound(src.loc, 'sound/machines/keypress.ogg', 50, 1, -15)
+				. = FALSE
 			if("tele")
 				var/teleaction = params["teleAction"]
 				var/xtarget = params["xTarget"]
@@ -1345,4 +1347,43 @@ proc/is_teleportation_allowed(var/turf/T)
 				bm.z = params["zTarget"]
 				bookmarks.Add(bm)
 				playsound(src.loc, "keyboard", 50, 1, -15)
+				. = TRUE
+			if("reconnect")
+				if ((host_id && params["magicnumber"] != "2") || !old_host_id || !src.link)
+					return
+
+				if (params["magicnumber"] == "2")
+					host_id = null
+
+				var/old = old_host_id
+				old_host_id = null
+				var/datum/signal/newsignal = get_free_signal()
+				newsignal.source = src
+				newsignal.transmission_method = TRANSMISSION_WIRE
+				newsignal.data["command"] = "term_connect"
+				newsignal.data["device"] = src.device_tag
+
+				newsignal.data_file = user_data.copy_file()
+
+				newsignal.data["address_1"] = old
+				newsignal.data["sender"] = src.net_id
+
+				src.link.post_signal(src, newsignal)
+				SPAWN_DBG(1 SECOND)
+					if (!old_host_id)
+						old_host_id = old
+			if("reset")
+				if(last_reset && (last_reset + NETWORK_MACHINE_RESET_DELAY >= world.time))
+					return TRUE
+
+				if(!host_id && !old_host_id)
+					return TRUE
+
+				src.last_reset = world.time
+				var/rem_host = src.host_id ? host_id : old_host_id
+				src.host_id = null
+
+				src.post_status(rem_host, "command","term_disconnect")
+				SPAWN_DBG(0.5 SECONDS)
+					src.post_status(rem_host, "command","term_connect","device",src.device_tag)
 				. = TRUE
