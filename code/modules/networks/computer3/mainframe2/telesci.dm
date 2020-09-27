@@ -1296,7 +1296,7 @@ proc/is_teleportation_allowed(var/turf/T)
 		data["xTarget"] = src.xtarget
 		data["yTarget"] = src.ytarget
 		data["zTarget"] = src.ztarget
-
+		data["hostId"] = src.host_id
 		var/obj/machinery/power/apc/APC = get_local_apc(src)
 		data["apcCellExists"] = istype(APC.cell,/obj/item/cell/)
 		data["apcExists"] = !isnull(APC)
@@ -1348,11 +1348,11 @@ proc/is_teleportation_allowed(var/turf/T)
 				bookmarks.Add(bm)
 				playsound(src.loc, "keyboard", 50, 1, -15)
 				. = TRUE
-			if("reconnect")
-				if ((host_id && params["magicnumber"] != "2") || !old_host_id || !src.link)
+			if("reconnect") // 1 = retry 2 = reset
+				if ((host_id && !params["reset"]) || !old_host_id || !src.link)
 					return
-
-				if (params["magicnumber"] == "2")
+				playsound(src.loc, 'sound/machines/keypress.ogg', 50, 1, -15)
+				if (params["reset"])
 					host_id = null
 
 				var/old = old_host_id
@@ -1368,22 +1368,9 @@ proc/is_teleportation_allowed(var/turf/T)
 				newsignal.data["address_1"] = old
 				newsignal.data["sender"] = src.net_id
 
+				tgui_process.update_uis(src)
 				src.link.post_signal(src, newsignal)
 				SPAWN_DBG(1 SECOND)
 					if (!old_host_id)
 						old_host_id = old
-			if("reset")
-				if(last_reset && (last_reset + NETWORK_MACHINE_RESET_DELAY >= world.time))
-					return TRUE
-
-				if(!host_id && !old_host_id)
-					return TRUE
-
-				src.last_reset = world.time
-				var/rem_host = src.host_id ? host_id : old_host_id
-				src.host_id = null
-
-				src.post_status(rem_host, "command","term_disconnect")
-				SPAWN_DBG(0.5 SECONDS)
-					src.post_status(rem_host, "command","term_connect","device",src.device_tag)
 				. = TRUE

@@ -1,5 +1,5 @@
 import { useBackend, useSharedState, useLocalState } from '../backend';
-import { Button, Flex, LabeledList, ProgressBar, Section, Slider, NoticeBox, Box, Input } from '../components';
+import { Button, Flex, LabeledList, ProgressBar, Section, Slider, NoticeBox, Box, Input, Dimmer } from '../components';
 import { Window } from '../layouts';
 import { Fragment } from 'inferno';
 import { clamp } from 'common/math';
@@ -26,13 +26,14 @@ export const TypedNoticeBox = props => {
 TypedNoticeBox.Types = Types;
 
 export const Telesci = (props, context) => {
-  const { data } = useBackend(context);
+  const { data, act } = useBackend(context);
   const {
     apcCellCurrentCharge,
     maxCharge,
     readout,
     apcExists,
     apcName,
+    hostId,
   } = data;
 
   const strings = [
@@ -42,11 +43,11 @@ export const Telesci = (props, context) => {
     { 'readout': 'Scan Results:', 'status': 'info' },
     { 'readout': 'Invalid coordinates', 'status': 'danger' },
   ];
-  const status = strings.find(string => readout.includes(string.readout)) || "success";
+  const status = strings.find(string => readout.includes(string.readout)) || 'success';
   return (
     <Window
-      width={295}
-      height={530}
+      width={280}
+      height={550}
       theme={'ntos'}>
       <Window.Content>
         {!!apcExists && (
@@ -62,10 +63,10 @@ export const Telesci = (props, context) => {
               }} />
           </Section>
         )}
-        <Box height="70px">
-          {!!readout && (
+        <Section mb={0} height="70px">
+          {(!!readout && !!hostId) && (
             <TypedNoticeBox
-              height="70px"
+              height="61px"
               type={status.status}>
               <Box
                 align="center"
@@ -81,7 +82,25 @@ export const Telesci = (props, context) => {
               </Box>
             </TypedNoticeBox>
           )}
-        </Box>
+          {(!hostId) && (
+            <Box
+              align="center"
+              color="red"
+              width="250px"
+              style={{
+                position: 'absolute', left: '50%', top: '50%',
+                transform: 'translate(-50%, -50%)',
+              }}>
+              NO CONNECTION TO HOST
+              <Box mt={2}>
+                <Button
+                  onClick={() => act('reconnect')}>
+                  Retry
+                </Button>
+              </Box>
+            </Box>
+          )}
+        </Section>
         <CoordinateInput />
         <TeleportButtons />
         <Bookmarks />
@@ -105,7 +124,7 @@ export const CoordinateInput = (props, context) => {
   ];
 
   return (
-    <Section title="Coordinates">
+    <Section title="Coordinates" mb={0}>
       <LabeledList>
         {coords.map(item => (
           <LabeledList.Item key={item.label} label={item.label}>
@@ -113,33 +132,36 @@ export const CoordinateInput = (props, context) => {
               <Flex.Item inline className="TeleSci-CoordinateButtonHolder">
                 {item.label !== 'Z' && (
                   <Button
+                    tabIndex={-1}
                     className="TeleSci-CoordinateButtons"
                     icon="fast-backward"
                     onClick={() =>
                     { item.setCoord(
                       (clamp((item.coord - 10), 0, item.maxCoord)));
                     setUpdateCoords(true);
-                    act("click"); }} />
+                    act('click'); }} />
                 )}
                 <Button
+                  tabIndex={-1}
                   className="TeleSci-CoordinateButtons"
                   icon="backward"
                   onClick={() =>
                   { item.setCoord(
                     (clamp((item.coord - 1), 0, item.maxCoord)));
                   setUpdateCoords(true);
-                  act("click"); }} />
+                  act('click'); }} />
               </Flex.Item>
               <Flex.Item inline width="90px" px={1} className="TeleSci-CoordinateButtonHolder">
                 <Slider
+                  tabIndex={1}
                   minValue={0}
                   maxValue={item.maxCoord}
                   value={item.coord}
                   fillValue={0}
                   step={1}
-                  stepPixelSize={(item.label === "Z") ? 10 : 4}
+                  stepPixelSize={(item.label === 'Z') ? 10 : 4}
                   onChange={() =>
-                  { act("click"); }}
+                  { act('click'); }}
                   onDrag={(e, value) => { item.setCoord(
                     clamp((value),
                       1, item.maxCoord));
@@ -147,22 +169,24 @@ export const CoordinateInput = (props, context) => {
               </Flex.Item>
               <Flex.Item inline className="TeleSci-CoordinateButtonHolder">
                 <Button
+                  tabIndex={-1}
                   className="TeleSci-CoordinateButtons"
                   icon="forward"
                   onClick={() =>
                   { item.setCoord(
                     (clamp((item.coord + 1), 0, item.maxCoord)));
                   setUpdateCoords(true);
-                  act("click"); }} />
+                  act('click'); }} />
                 {item.label !== 'Z' && (
                   <Button
+                    tabIndex={-1}
                     className="TeleSci-CoordinateButtons"
                     icon="fast-forward"
                     onClick={() =>
                     { item.setCoord(
                       (clamp((item.coord + 10), 0, item.maxCoord)));
                     setUpdateCoords(true);
-                    act("click"); }} />
+                    act('click'); }} />
                 )}
               </Flex.Item>
             </Flex>
@@ -217,7 +241,7 @@ export const Bookmarks = (props, context) => {
   const [xTarget, setxTarget] = useSharedState(context, 'xTarget', 1);
   const [yTarget, setyTarget] = useSharedState(context, 'yTarget', 1);
   const [zTarget, setzTarget] = useSharedState(context, 'zTarget', 1);
-  const [bookmarkName, setBookmarkName] = useLocalState(context, 'groupName', "");
+  const [bookmarkName, setBookmarkName] = useLocalState(context, 'groupName', '');
 
   const {
     bookmarks,
@@ -230,50 +254,64 @@ export const Bookmarks = (props, context) => {
         buttons={(
           <Box as="span">
             <Input
-              pl={5}
+              selfClear
               placeholder="Name"
-              value={bookmarkName}
-              onInput={(e, value) => setBookmarkName(value)} />
-            <Button
-              icon="plus-circle"
-              lineHeight={1.75}
-              onClick={() => {
-                act("bookmark", {
+              onChange={() => {
+                act('bookmark', {
                   'bmtitle': bookmarkName,
                   'xTarget': xTarget,
                   'yTarget': yTarget,
                   'zTarget': zTarget });
-                setBookmarkName("");
-              }}>
-              Add
-            </Button>
+                setBookmarkName('');
+              }}
+              onInput={(e, value) => setBookmarkName(value)} />
           </Box>
         )} />
       <Section
+        mb={0.5}
         height="132px"
         scrollable>
         <LabeledList>
           {bookmarks.map(bookmark => (
             <LabeledList.Item
               mt={2}
-              label={`${bookmark.name} (X:${bookmark.x}
-                Y:${bookmark.y} Z:${bookmark.z})`}
+              label={`${bookmark.name} (${bookmark.x}/${bookmark.y}/${bookmark.z})`}
               key={bookmark.name}
               buttons={(
-                <Button
-                  className="TeleSci-TeleButtons"
-                  onClick={() => {
-                    setxTarget(bookmark.x);
-                    setyTarget(bookmark.y);
-                    setzTarget(bookmark.z);
-                  }}>
-                  Load
-                </Button>
+                <Fragment>
+                  <Button
+                    className="TeleSci-TeleButtons"
+                    onClick={() => {
+                      setxTarget(bookmark.x);
+                      setyTarget(bookmark.y);
+                      setzTarget(bookmark.z);
+                    }}>
+                    Load
+                  </Button>
+                  <Button.Confirm
+                    color="danger"
+                    icon="trash"
+                    className="TeleSci-TeleButtons"
+                    onClick={() => {
+                      setxTarget(bookmark.x);
+                      setyTarget(bookmark.y);
+                      setzTarget(bookmark.z);
+                    }} />
+                </Fragment>
               )} />
           ))}
         </LabeledList>
       </Section>
+      <Section fitted height="35px">
+        <Button align="center"
+          onClick={() => act('reconnect', {
+            'reset': true })}
+          style={{
+            transform: 'translate(64%, 35%)',
+          }}>
+          Reset Connection
+        </Button>
+      </Section>
     </Fragment>
   );
-
 };
