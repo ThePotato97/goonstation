@@ -54,6 +54,7 @@ export const Telesci = (props, context) => {
       theme={'ntos'}>
       <Window.Content>
         <Modal width="150px">
+          <Section>
           <Box>
             {binary}
           </Box>
