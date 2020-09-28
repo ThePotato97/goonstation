@@ -1,5 +1,5 @@
 import { useBackend, useSharedState, useLocalState } from '../backend';
-import { Button, Flex, LabeledList, ProgressBar, Section, Slider, NoticeBox, Box, Input, Dimmer } from '../components';
+import { Button, Flex, LabeledList, ProgressBar, Section, Slider, NoticeBox, Box, Input, Modal, Divider } from '../components';
 import { Window } from '../layouts';
 import { Fragment } from 'inferno';
 import { clamp } from 'common/math';
@@ -35,6 +35,7 @@ export const Telesci = (props, context) => {
     apcName,
     hostId,
   } = data;
+  const [binary, setBinary] = useSharedState(context, 'binarya', 10);
 
   const strings = [
     { 'readout': 'No atmosphere.', 'status': 'warning' },
@@ -43,6 +44,8 @@ export const Telesci = (props, context) => {
     { 'readout': 'Scan Results:', 'status': 'info' },
     { 'readout': 'Invalid coordinates', 'status': 'danger' },
   ];
+  const binNum = [8, 4, 2, 1];
+
   const status = strings.find(string => readout.includes(string.readout)) || 'success';
   return (
     <Window
@@ -50,6 +53,30 @@ export const Telesci = (props, context) => {
       height={550}
       theme={'ntos'}>
       <Window.Content>
+        <Modal width="150px">
+          <Box>
+            {binary}
+          </Box>
+          {(('0000'+(binary).toString(2)).slice(-4)).split('').map((string, index) => (
+            <Box pl={0.5} key={string} inline>
+              <Button
+                align="center"
+                width="25px"
+                inline
+                color={!Number(string) ? 'red' : 'green'}
+                onClick={() => !Number(string)
+                  ? setBinary(binary + binNum[index])
+                  : setBinary(binary - binNum[index])}>
+                <Box>
+                  {string}
+                </Box>
+                <Box>
+                  {binNum[index]}
+                </Box>
+              </Button>
+            </Box>
+          ))}
+        </Modal>
         {!!apcExists && (
           <Section mb={0} title={apcName}>
             <ProgressBar
