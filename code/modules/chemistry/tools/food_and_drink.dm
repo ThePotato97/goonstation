@@ -136,11 +136,11 @@
 		if (world.time - create_time >= 1 MINUTES)
 			create_time = world.time
 			if (!src.pooled && isturf(src.loc) && !on_table())
-				if (prob(50))
-					made_ants = 1
-					processing_items -= src
-					if (!(locate(/obj/reagent_dispensers/ants) in src.loc))
-						new/obj/reagent_dispensers/ants(src.loc)
+				//if (prob(50))
+				made_ants = 1
+				processing_items -= src
+				if (!(locate(/obj/reagent_dispensers/ants) in src.loc))
+					new/obj/reagent_dispensers/ants(src.loc, food = src)
 
 
 	attackby(obj/item/W as obj, mob/user as mob)

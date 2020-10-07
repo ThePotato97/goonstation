@@ -85,9 +85,12 @@
 	density = 0
 	anchored = 1
 	amount_per_transfer_from_this = 5
+	var/obj/item/reagent_containers/food/the_food
 
-	New()
+	New(var/food)
 		..()
+		the_food = food
+		processing_items.Add(src)
 		var/scale = (rand(2, 10) / 10) + (rand(0, 5) / 100)
 		src.Scale(scale, scale)
 		src.dir = pick(NORTH, SOUTH, EAST, WEST)
@@ -96,6 +99,22 @@
 	get_desc(dist, mob/user)
 		return null
 
+	proc/process()
+		if(isnull(the_food))
+			return
+		if(get_turf(the_food) != get_turf(src))
+			SPAWN_DBG(10 SECONDS)
+			the_food.made_ants = 0
+			qdel(src)
+			return
+		if(the_food.amount > 0)
+			the_food.amount =- 1
+		else
+			qdel(the_food)
+			SPAWN_DBG(10 SECONDS)
+			qdel(src)
+
+
 	attackby(obj/item/W as obj, mob/user as mob)
 		..(W, user)
 		SPAWN_DBG(1 SECOND)
@@ -103,6 +122,10 @@
 				if (src.reagents.total_volume <= 1)
 					qdel(src)
 		return
+
+	disposing()
+		processing_items -= src
+		..()
 
 /obj/reagent_dispensers/spiders
 	name = "spiders"
