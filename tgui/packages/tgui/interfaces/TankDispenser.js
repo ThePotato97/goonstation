@@ -5,13 +5,13 @@
  */
 
 import { useBackend } from '../backend';
-import { Button, LabeledList, Section } from '../components';
+import { Button, LabeledList, Section, Tooltip } from '../components';
 import { Window } from '../layouts';
 
 export const TankDispenser = (props, context) => {
   const { act, data } = useBackend(context);
   return (
-    <Window width={280} height={105}>
+    <Window width={280} height={155}>
       <Window.Content>
         <Section>
           <LabeledList>
@@ -38,6 +38,9 @@ export const TankDispenser = (props, context) => {
               {data.oxygen}
             </LabeledList.Item>
           </LabeledList>
+          <Tooltip content="Some very helpful tip">
+            <Button icon="question" />
+          </Tooltip>
         </Section>
       </Window.Content>
     </Window>

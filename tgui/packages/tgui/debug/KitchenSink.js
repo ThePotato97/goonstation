@@ -411,8 +411,9 @@ const KitchenSinkTooltip = props => {
     <Section>
       <Box>
         <Box inline position="relative" mr={1}>
-          Box (hover me).
-          <Tooltip content="Tooltip text." />
+          <Tooltip content="Some very helpful tip">
+            <Button icon="question" />
+          </Tooltip>
         </Box>
         <Button
           tooltip="Tooltip text."
