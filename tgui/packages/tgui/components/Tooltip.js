@@ -57,37 +57,6 @@ class Portal extends Component {
   }
 }
 
-const CustomPositionModifier = {
-  name: 'CustomPositionModifier',
-  enabled: true,
-  phase: 'main',
-  fn({ data }) {
-    const isVisible = this.state.isVisible;
-    logger.log(isVisible);
-    const left = Math.floor(data.popper.left);
-    const top = Math.floor(data.popper.top);
-    const newTop = isVisible ? top : top - 10;
-
-    const popper = { ...data.popper, left, top: newTop };
-    const offsets = { ...data.offsets, popper };
-    const styles = { ...data.styles };
-
-    return { ...data, offsets, styles };
-  },
-};
-
-const topLogger = {
-  name: 'topLogger',
-  enabled: true,
-  phase: 'main',
-  fn({ state }) {
-    if (state.placement === 'top') {
-      logger.log('Popper is on the top');
-    }
-  },
-};
-
-
 export class Tooltip extends Component {
   constructor(props, context) {
     super(props, context);
@@ -100,7 +69,25 @@ export class Tooltip extends Component {
 
 
   mouseEnter(e) {
+    const {
+      position = "top",
+    } = this.props;
+
     this.setState({ tooltipEnabled: true });
+    if (this.children.current && this.tooltip.current)
+    {
+      createPopper(this.children.current, this.tooltip.current, {
+        placement: position,
+        modifiers: {
+          name: 'computeStylesGpu',
+          options: {
+            gpuAcceleration: false,
+            adaptive: false,
+            applyStyles: true,
+          },
+        },
+      });
+    }
   }
 
   mouseLeave(e) {
@@ -108,27 +95,14 @@ export class Tooltip extends Component {
   }
 
   render() {
-    createPopper(this.children.current, this.tooltip.current, {
-      placement: 'right',
-      modifiers: {
-        name: 'computeStylesGpu',
-        options: {
-          gpuAcceleration: false,
-          adaptive: false,
-          applyStyles: true,
-        },
-      },
-    });
-
     return (
-      <Box>
-        <div
+      <Box as="span">
+        <span
           onmouseenter={this.mouseEnter.bind(this)}
           onmouseleave={this.mouseLeave.bind(this)}
           ref={this.children}>
-          {this.tooltip.length}
           {this.props.children}
-        </div>
+        </span>
         {this.state.tooltipEnabled && (
           <Portal>
             <div

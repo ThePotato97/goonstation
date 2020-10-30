@@ -400,34 +400,57 @@ const KitchenSinkTabs = (props, context) => {
 
 const KitchenSinkTooltip = props => {
   const positions = [
+    'auto',
+    'auto-start',
+    'auto-end',
     'top',
-    'left',
+    'top-start',
+    'top-end',
     'right',
+    'right-start',
+    'right-end',
     'bottom',
-    'bottom-left',
-    'bottom-right',
+    'bottom-start',
+    'bottom-end',
+    'left',
+    'left-start',
+    'left-end',
   ];
   return (
     <Section>
       <Box>
-        <Box inline position="relative" mr={1}>
-          <Tooltip content="Some very helpful tip">
-            <Button icon="question" />
-          </Tooltip>
-        </Box>
-        <Button
-          tooltip="Tooltip text."
-          content="Button" />
+        <Tooltip content="Tooltip text.">
+          <Box inline position="relative" mr={1}>
+            Box (hover me).
+          </Box>
+        </Tooltip>
+        <Tooltip content="Tooltip text.">
+          <Button
+            content="Button" />
+        </Tooltip>
       </Box>
       <Box mt={1}>
         {positions.map(position => (
-          <Button
+          <Tooltip
             key={position}
-            color="transparent"
-            tooltip="Tooltip text."
-            tooltipPosition={position}
-            content={position} />
+            content="Tooltip"
+            position={position}>
+            <Button
+              color="transparent"
+              content={position} />
+          </Tooltip>
         ))}
+      </Box>
+      <Box>
+        <Button
+          width="70px"
+          style={{
+            'white-space': 'nowrap',
+            'overflow': 'hidden',
+            'text-overflow': 'ellipsis',
+          }}>
+          This is very long text
+        </Button>
       </Box>
     </Section>
   );
