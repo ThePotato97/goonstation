@@ -91,49 +91,54 @@ const topLogger = {
 export class Tooltip extends Component {
   constructor(props, context) {
     super(props, context);
-    this.state = {};
-    this._popper = null;
-    this._popperParentNode = null;
-    this._popoutNode = null;
-    this._arrow = null;
-
-    this.children = document.querySelector('#children');
-    this.tooltip = document.querySelector('#tooltip');
-  }
-
-  componentDidMount() {
-    logger.log("Mounted");
+    this.state = {
+      tooltipEnabled: false,
+    };
+    this.children = createRef();
+    this.tooltip = createRef();
   }
 
 
-  /*   {
-    name: 'computeStylesGpu',
-    options: {
-      gpuAcceleration: false,
-      adaptive: false,
-      applyStyle: true,
-      [CustomPositionModifier]: true,
-    },
-  }, */
+  mouseEnter(e) {
+    this.setState({ tooltipEnabled: true });
+  }
+
+  mouseLeave(e) {
+    this.setState({ tooltipEnabled: false });
+  }
 
   render() {
-    this._popper = createPopper(this.children, this.tooltip, {
-      modifiers: [topLogger],
+    createPopper(this.children.current, this.tooltip.current, {
+      placement: 'right',
+      modifiers: {
+        name: 'computeStylesGpu',
+        options: {
+          gpuAcceleration: false,
+          adaptive: false,
+          applyStyles: true,
+        },
+      },
     });
-    let state = this.state;
+
     return (
       <Box>
         <div
-          id="children" />
-        {this._popper.length}
-        {this.props.children}
-        <Portal>
-          <Box
-            className="Tooltip"
-            id="tooltip">
-            {this.props.content}
-          </Box>
-        </Portal>
+          onmouseenter={this.mouseEnter.bind(this)}
+          onmouseleave={this.mouseLeave.bind(this)}
+          ref={this.children}>
+          {this.tooltip.length}
+          {this.props.children}
+        </div>
+        {this.state.tooltipEnabled && (
+          <Portal>
+            <div
+              className="Tooltip"
+              ref={this.tooltip}>
+              <div data-popper-arrow />
+              {this.props.content}
+            </div>
+          </Portal>
+        )}
       </Box>
     );
   }
