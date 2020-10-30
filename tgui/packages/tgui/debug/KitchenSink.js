@@ -449,7 +449,9 @@ const KitchenSinkTooltip = props => {
             'overflow': 'hidden',
             'text-overflow': 'ellipsis',
           }}>
-          This is very long text
+          <Tooltip.Overflow>
+            This is very long text
+          </Tooltip.Overflow>
         </Button>
       </Box>
     </Section>

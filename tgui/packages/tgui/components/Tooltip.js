@@ -7,6 +7,7 @@
 import { classes } from 'common/react';
 import { Component, createPortal, createRef } from 'inferno';
 import { Button } from './Button';
+import { computeBoxProps } from './Box';
 import { Box } from './Box';
 
 import { createPopper } from '@popperjs/core';
@@ -117,3 +118,47 @@ export class Tooltip extends Component {
     );
   }
 }
+
+class TooltipOverflow extends Component {
+  constructor(props) {
+    super(props);
+    this.overflowed = false;
+  }
+
+  isEllipsisActive(e) {
+    return e.offsetHeight < e.scrollHeight || e.offsetWidth < e.scrollWidth;
+  }
+
+  componentDidUpdate() {
+    this.overflowed = this.isEllipsisActive(this.span);
+  }
+
+  componentDidMount() {
+    this.overflowed = this.isEllipsisActive(this.span);
+  }
+
+  render() {
+    const {
+      className,
+      content,
+      children,
+      ...rest
+    } = this.props;
+    const boxProps = computeBoxProps(rest);
+    return (
+      <span
+        ref={this.span}
+        className="TooltipOverflow"
+        {...boxProps}>
+        {!!this.overflowed && (
+          <Tooltip
+            content={content} />
+        )}
+        {children}
+      </span>
+    );
+  }
+}
+
+
+Tooltip.Overflow = TooltipOverflow;
