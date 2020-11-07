@@ -5,7 +5,7 @@
  */
 
 import { classes } from 'common/react';
-import { Component, createPortal, createRef } from 'inferno';
+import { Component, createPortal, createRef, Fragment } from 'inferno';
 import { Button } from './Button';
 import { computeBoxProps } from './Box';
 import { Box } from './Box';
@@ -13,7 +13,7 @@ import { Box } from './Box';
 import { createPopper } from '@popperjs/core';
 
 import { createLogger } from 'common/logging.js';
-const logger = createLogger('Tooltip');
+const logger = createLogger('ByondUi');
 
 export const Tooltipold = props => {
   const {
@@ -61,60 +61,150 @@ class Portal extends Component {
 export class Tooltip extends Component {
   constructor(props, context) {
     super(props, context);
+    this.self = this;
     this.state = {
       tooltipEnabled: false,
     };
-    this.children = createRef();
+    this.popperInstance = null;
+    this.childrenHolder = createRef();
     this.tooltip = createRef();
+    this.arrow = createRef();
+    this.popperActive = false;
+    this.disablePopper = false;
+    this.props.overflow = true;
   }
 
-
-  mouseEnter(e) {
+  makePopper() {
     const {
       position = "top",
     } = this.props;
-
     this.setState({ tooltipEnabled: true });
-    if (this.children.current && this.tooltip.current)
+    if (this.childrenHolder.current && this.tooltip.current)
     {
-      createPopper(this.children.current, this.tooltip.current, {
-        placement: position,
-        modifiers: {
-          name: 'computeStylesGpu',
-          options: {
-            gpuAcceleration: false,
-            adaptive: false,
-            applyStyles: true,
-          },
-        },
-      });
+      this.popperInstance = createPopper(
+        this.childrenHolder.current,
+        this.tooltip.current, {
+          placement: position,
+          offset: 10,
+          modifiers: [
+            {
+              name: 'computeStylesGpu',
+              options: {
+                gpuAcceleration: false,
+                adaptive: false,
+                applyStyles: true,
+              },
+            },
+            {
+              name: 'arrow',
+              options: {
+                enabled: true,
+                element: this.arrow.current,
+              },
+            },
+            {
+              name: 'preventOverflow',
+              options: {
+                altAxis: true,
+                padding: 5,
+              },
+            },
+          ],
+        });
     }
   }
 
-  mouseLeave(e) {
+
+  isEllipsisActive(e) {
+    return e.offsetHeight < e.scrollHeight || e.offsetWidth < e.scrollWidth;
+  }
+
+
+
+  componentDidUpdate() {
+    // this.disablePopper = this.isEllipsisActive(this.childrenHolder.current)
+    // && this.props.overflow;
+    /*     this.childrenHolder.current.removeEventListener("mouseenter");
+    this.childrenHolder.current.removeEventListener("mouseleave"); */
+    if (this.props.triggerRef && !this.popperActive)
+    {
+      logger.log("Hello");
+      this.props.triggerRef.current.addEventListener("mouseleave",
+        () => this.mouseLeave());
+      this.props.triggerRef.current.addEventListener("mouseenter",
+        () => this.mouseEnter());
+      this.popperActive = true;
+    }
+  }
+
+  /*   if (!this.disablePopper && !this.popperActive && this.childrenHolder)
+  {    } */
+
+  componentDidMount() {
+    // this.disablePopper = this.isEllipsisActive(this.childrenHolder.current)
+    // && this.props.overflow;
+    if (this.childrenHolder && this.childrenHolder.current)
+    {
+      this.childrenHolder.current.addEventListener("mouseleave", () => this.mouseLeave());
+      this.childrenHolder.current.addEventListener("mouseenter", () => this.mouseEnter());
+      this.popperActive = true;
+    }
+  }
+
+  destroy() {
+    if (this.popperInstance) {
+      this.popperInstance.destroy();
+      this.popperInstance = null;
+    }
+  }
+
+  mouseEnter() {
+    this.makePopper();
+    this.setState({ tooltipEnabled: true });
+  }
+
+  mouseLeave() {
     this.setState({ tooltipEnabled: false });
+    this.destroy();
   }
 
   render() {
+    const {
+      children,
+      content,
+      triggerRef,
+      ...rest
+    } = this.props;
+    const boxProps = computeBoxProps(rest);
     return (
-      <Box as="span">
-        <span
-          onmouseenter={this.mouseEnter.bind(this)}
-          onmouseleave={this.mouseLeave.bind(this)}
-          ref={this.children}>
-          {this.props.children}
-        </span>
+      <Fragment>
+        {this.childrenHopper && (
+          <Box>
+            Test
+          </Box>
+        )}
+        {triggerRef && (
+          { children }
+        )}
+        {!triggerRef && (
+          <div
+            style={{
+              'display': 'inline-block',
+            }}
+            ref={this.childrenHolder}>
+            {children}
+          </div>
+        )}
         {this.state.tooltipEnabled && (
           <Portal>
             <div
               className="Tooltip"
               ref={this.tooltip}>
-              <div data-popper-arrow />
-              {this.props.content}
+              {content}
             </div>
           </Portal>
         )}
-      </Box>
+      </Fragment>
     );
   }
 }
@@ -125,17 +215,6 @@ class TooltipOverflow extends Component {
     this.overflowed = false;
   }
 
-  isEllipsisActive(e) {
-    return e.offsetHeight < e.scrollHeight || e.offsetWidth < e.scrollWidth;
-  }
-
-  componentDidUpdate() {
-    this.overflowed = this.isEllipsisActive(this.span);
-  }
-
-  componentDidMount() {
-    this.overflowed = this.isEllipsisActive(this.span);
-  }
 
   render() {
     const {
@@ -150,7 +229,7 @@ class TooltipOverflow extends Component {
         ref={this.span}
         className="TooltipOverflow"
         {...boxProps}>
-        {!!this.overflowed && (
+        {!!this.disablePopper && (
           <Tooltip
             content={content} />
         )}
@@ -159,6 +238,5 @@ class TooltipOverflow extends Component {
     );
   }
 }
-
 
 Tooltip.Overflow = TooltipOverflow;

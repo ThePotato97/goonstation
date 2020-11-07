@@ -20,5 +20,40 @@ $border-radius: base.$border-radius !default;
   z-index: 10000;
 }
 
+.Tooltip[data-popper-placement^='top'] > .Arrow {
+  bottom: -4px;
+}
 
+.Tooltip[data-popper-placement^='bottom'] > .Arrow {
+  top: -4px;
+}
 
+.Tooltiptip[data-popper-placement^='left'] > .Arrow {
+  right: -4px;
+}
+
+.Tooltip[data-popper-placement^='right'] > .Arrow {
+  left: -4px;
+}
+
+.Arrow {
+  position: absolute;
+  offset: -10;
+  width: 0.75em;
+  height: 0.75em;
+  overflow: hidden;
+}
+
+.Arrow,
+.Arrow::before {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  z-index: -1;
+}
+
+.Arrow::before {
+  content: '';
+  transform: rotate(45deg);
+  background: rgb(255, 255, 255);
+}

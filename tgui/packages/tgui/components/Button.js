@@ -1,6 +1,8 @@
 /**
  * @file
  * @copyright 2020 Aleksej Komarov
+ * @Author Original Aleksej Komarov
+ * @Modified Changes ThePotato97
  * @license MIT
  */
 
@@ -8,102 +10,112 @@ import { classes, pureComponentHooks } from 'common/react';
 import { Component, createRef } from 'inferno';
 import { KEY_ENTER, KEY_ESCAPE, KEY_SPACE } from '../hotkeys';
 import { createLogger } from '../logging';
-import { Box } from './Box';
+import { Box, computeBoxClassName, computeBoxProps } from './Box';
 import { Icon } from './Icon';
 import { Tooltip } from './Tooltip';
 
 const logger = createLogger('Button');
 
-export const Button = props => {
-  const {
-    className,
-    fluid,
-    icon,
-    iconRotation,
-    iconSpin,
-    color,
-    disabled,
-    selected,
-    tooltip,
-    tooltipPosition,
-    tooltipOverrideLong,
-    ellipsis,
-    compact,
-    circular,
-    content,
-    children,
-    onclick,
-    onClick,
-    ...rest
-  } = props;
-  const hasContent = !!(content || children);
-  // A warning about the lowercase onclick
-  if (onclick) {
-    logger.warn(
-      `Lowercase 'onclick' is not supported on Button and lowercase`
+export class Button extends Component {
+  constructor() {
+    super();
+    this.buttonRef = createRef();
+  }
+
+  render() {
+    const {
+      className,
+      fluid,
+      icon,
+      iconRotation,
+      iconSpin,
+      color,
+      disabled,
+      selected,
+      tooltip,
+      tooltipPosition,
+      tooltipOverrideLong,
+      ellipsis,
+      compact,
+      circular,
+      content,
+      children,
+      onclick,
+      onClick,
+      ...rest
+    } = this.props;
+    const hasContent = !!(content || children);
+    // A warning about the lowercase onclick
+    if (onclick) {
+      logger.warn(
+        `Lowercase 'onclick' is not supported on Button and lowercase`
       + ` prop names are discouraged in general. Please use a camelCase`
       + `'onClick' instead and read: `
       + `https://infernojs.org/docs/guides/event-handling`);
-  }
-  // IE8: Use a lowercase "onclick" because synthetic events are fucked.
-  // IE8: Use an "unselectable" prop because "user-select" doesn't work.
-  return (
-    <Box
-      className={classes([
-        'Button',
-        fluid && 'Button--fluid',
-        disabled && 'Button--disabled',
-        selected && 'Button--selected',
-        hasContent && 'Button--hasContent',
-        ellipsis && 'Button--ellipsis',
-        circular && 'Button--circular',
-        compact && 'Button--compact',
-        (color && typeof color === 'string')
-          ? 'Button--color--' + color
-          : 'Button--color--default',
-        className,
-      ])}
-      tabIndex={!disabled && '0'}
-      unselectable={Byond.IS_LTE_IE8}
-      onClick={e => {
-        if (!disabled && onClick) {
-          onClick(e);
-        }
-      }}
-      onKeyDown={e => {
-        const keyCode = window.event ? e.which : e.keyCode;
-        // Simulate a click when pressing space or enter.
-        if (keyCode === KEY_SPACE || keyCode === KEY_ENTER) {
-          e.preventDefault();
+    }
+    // IE8: Use a lowercase "onclick" because synthetic events are fucked.
+    // IE8: Use an "unselectable" prop because "user-select" doesn't work.
+    return (
+      <div
+        ref={this.buttonRef}
+        className={classes([
+          'Button',
+          fluid && 'Button--fluid',
+          disabled && 'Button--disabled',
+          selected && 'Button--selected',
+          hasContent && 'Button--hasContent',
+          ellipsis && 'Button--ellipsis',
+          circular && 'Button--circular',
+          compact && 'Button--compact',
+          (color && typeof color === 'string')
+            ? 'Button--color--' + color
+            : 'Button--color--default',
+          className,
+          computeBoxClassName(rest),
+        ])}
+        tabIndex={!disabled && '0'}
+        unselectable={Byond.IS_LTE_IE8}
+        onClick={e => {
           if (!disabled && onClick) {
             onClick(e);
           }
-          return;
-        }
-        // Refocus layout on pressing escape.
-        if (keyCode === KEY_ESCAPE) {
-          e.preventDefault();
-          return;
-        }
-      }}
-      {...rest}>
-      {icon && (
-        <Icon
-          name={icon}
-          rotation={iconRotation}
-          spin={iconSpin} />
-      )}
-      {content}
-      {children}
-      {tooltip && (
-        <Tooltip
-          content={tooltip}
-          overrideLong={tooltipOverrideLong}
-          position={tooltipPosition} />
-      )}
-    </Box>
-  );
-};
+        }}
+        onKeyDown={e => {
+          const keyCode = window.event ? e.which : e.keyCode;
+          // Simulate a click when pressing space or enter.
+          if (keyCode === KEY_SPACE || keyCode === KEY_ENTER) {
+            e.preventDefault();
+            if (!disabled && onClick) {
+              onClick(e);
+            }
+            return;
+          }
+          // Refocus layout on pressing escape.
+          if (keyCode === KEY_ESCAPE) {
+            e.preventDefault();
+            return;
+          }
+        }}
+        {...computeBoxProps(rest)}>
+        {icon && (
+          <Icon
+            name={icon}
+            rotation={iconRotation}
+            spin={iconSpin} />
+        )}
+        {content}
+        {children}
+        {tooltip && (
+          <Tooltip
+            triggerRef={this.buttonRef}
+            content={tooltip}
+            overrideLong={tooltipOverrideLong}
+            position={tooltipPosition} />
+        )}
+      </div>
+    );
+  }
+}
 
 Button.defaultHooks = pureComponentHooks;
 

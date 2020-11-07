@@ -419,15 +419,21 @@ const KitchenSinkTooltip = props => {
   return (
     <Section>
       <Box>
-        <Tooltip content="Tooltip text.">
-          <Box inline position="relative" mr={1}>
-            Box (hover me).
+        <Tooltip content="Helpful tip">
+          <Box>
+            <Icon name="question-circle" />
+            Hover me!
           </Box>
         </Tooltip>
         <Tooltip content="Tooltip text.">
           <Button
             content="Button" />
         </Tooltip>
+        <Button
+          tooltip="Helpful tip"
+          content="Button">
+          This Button
+        </Button>
       </Box>
       <Box mt={1}>
         {positions.map(position => (
@@ -442,18 +448,24 @@ const KitchenSinkTooltip = props => {
         ))}
       </Box>
       <Box>
-        <Button
-          width="70px"
-          style={{
-            'white-space': 'nowrap',
-            'overflow': 'hidden',
-            'text-overflow': 'ellipsis',
-          }}>
-          <Tooltip.Overflow>
+        <Tooltip content="This is very long text">
+          <Button
+            style={{
+              'display': 'inline-block',
+              'white-space': 'nowrap',
+              'overflow': 'hidden',
+              'text-overflow': 'ellipsis',
+            }}>
             This is very long text
-          </Tooltip.Overflow>
-        </Button>
+          </Button>
+        </Tooltip>
       </Box>
+      <Tooltip content="tip">
+        <div>
+          <Knob />
+          Label
+        </div>
+      </Tooltip>
     </Section>
   );
 };
