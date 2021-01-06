@@ -4,7 +4,7 @@
   "version": "4.2.0",
   "type": "module",
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "glob": "^7.1.4",
     "source-map": "^0.7.3",
     "stacktrace-parser": "^0.1.7",
